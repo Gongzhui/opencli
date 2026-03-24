@@ -1,8 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import {
   buildXhsNoteUrl,
+  extractXhsFavoriteNotes,
   extractXhsUserNotes,
   flattenXhsNoteGroups,
+  getXhsCollectionNoteGroup,
   normalizeXhsUserId,
 } from './user-helpers.js';
 
@@ -34,6 +36,14 @@ describe('buildXhsNoteUrl', () => {
     expect(buildXhsNoteUrl('user123', 'note456', 'token789')).toBe(
       'https://www.xiaohongshu.com/user/profile/user123/note456?xsec_token=token789&xsec_source=pc_user'
     );
+  });
+});
+
+describe('getXhsCollectionNoteGroup', () => {
+  it('returns only the note collection bucket from the grouped profile state', () => {
+    expect(getXhsCollectionNoteGroup([[{ id: 'user-note' }], [{ id: 'fav-note' }], [{ id: 'board' }]])).toEqual([
+      { id: 'fav-note' },
+    ]);
   });
 });
 
@@ -102,5 +112,47 @@ describe('extractXhsUserNotes', () => {
 
     expect(rows).toHaveLength(1);
     expect(rows[0]?.title).toBe('keep me');
+  });
+});
+
+describe('extractXhsFavoriteNotes', () => {
+  it('extracts only favorite note rows from the collection note group', () => {
+    const rows = extractXhsFavoriteNotes(
+      {
+        noteGroups: [
+          [
+            { noteCard: { noteId: 'user-note', displayTitle: 'Own note' } },
+          ],
+          [
+            {
+              id: 'fav-1',
+              xsecToken: 'fav-token',
+              noteCard: {
+                noteId: 'fav-1',
+                displayTitle: 'Saved note',
+                type: 'normal',
+                interactInfo: { likedCount: '99' },
+                user: { nickname: 'Author A', userId: 'author-a' },
+              },
+            },
+          ],
+          [
+            { id: 'board-1', name: '专辑' },
+          ],
+        ],
+      },
+      'fallback-user'
+    );
+
+    expect(rows).toEqual([
+      {
+        id: 'fav-1',
+        title: 'Saved note',
+        author: 'Author A',
+        type: 'normal',
+        likes: '99',
+        url: 'https://www.xiaohongshu.com/user/profile/author-a/fav-1?xsec_token=fav-token&xsec_source=pc_user',
+      },
+    ]);
   });
 });

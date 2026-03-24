@@ -11,6 +11,10 @@ export interface XhsUserNoteRow {
   url: string;
 }
 
+export interface XhsFavoriteNoteRow extends XhsUserNoteRow {
+  author: string;
+}
+
 function toCleanString(value: unknown): string {
   return typeof value === 'string' ? value.trim() : value == null ? '' : String(value).trim();
 }
@@ -39,6 +43,13 @@ export function flattenXhsNoteGroups(noteGroups: unknown): any[] {
   }
 
   return notes;
+}
+
+export function getXhsCollectionNoteGroup(noteGroups: unknown): any[] {
+  if (!Array.isArray(noteGroups)) return [];
+  const group = noteGroups[1];
+  if (!Array.isArray(group)) return [];
+  return group.filter(Boolean);
 }
 
 export function buildXhsNoteUrl(userId: string, noteId: string, xsecToken?: string): string {
@@ -75,6 +86,36 @@ export function extractXhsUserNotes(snapshot: XhsUserPageSnapshot, fallbackUserI
     rows.push({
       id: noteId,
       title: toCleanString(noteCard.displayTitle ?? noteCard.display_title ?? noteCard.title),
+      type: toCleanString(noteCard.type),
+      likes,
+      url: buildXhsNoteUrl(userId || fallbackUserId, noteId, xsecToken),
+    });
+  }
+
+  return rows;
+}
+
+export function extractXhsFavoriteNotes(snapshot: XhsUserPageSnapshot, fallbackUserId: string): XhsFavoriteNoteRow[] {
+  const notes = getXhsCollectionNoteGroup(snapshot.noteGroups);
+  const rows: XhsFavoriteNoteRow[] = [];
+  const seen = new Set<string>();
+
+  for (const entry of notes) {
+    const noteCard = entry?.noteCard ?? entry?.note_card ?? entry;
+    if (!noteCard || typeof noteCard !== 'object') continue;
+
+    const noteId = toCleanString(noteCard.noteId ?? noteCard.note_id ?? entry?.noteId ?? entry?.note_id ?? entry?.id);
+    if (!noteId || seen.has(noteId)) continue;
+    seen.add(noteId);
+
+    const userId = toCleanString(noteCard.user?.userId ?? noteCard.user?.user_id ?? fallbackUserId);
+    const xsecToken = toCleanString(entry?.xsecToken ?? entry?.xsec_token ?? noteCard.xsecToken ?? noteCard.xsec_token);
+    const likes = toCleanString(noteCard.interactInfo?.likedCount ?? noteCard.interact_info?.liked_count ?? 0) || '0';
+
+    rows.push({
+      id: noteId,
+      title: toCleanString(noteCard.displayTitle ?? noteCard.display_title ?? noteCard.title),
+      author: toCleanString(noteCard.user?.nickname ?? noteCard.user?.nickName),
       type: toCleanString(noteCard.type),
       likes,
       url: buildXhsNoteUrl(userId || fallbackUserId, noteId, xsecToken),
