@@ -11,7 +11,7 @@ import { type CliCommand, fullName, getRegistry, strategyLabel } from './registr
 import { serializeCommand, formatArgSummary } from './serialization.js';
 import { render as renderOutput } from './output.js';
 import { getBrowserFactory, browserSession } from './runtime.js';
-import { PKG_VERSION } from './version.js';
+import { CLI_VERSION } from './version.js';
 import { printCompletionScript } from './completion.js';
 import { loadExternalClis, executeExternalCli, installExternalCli, registerExternalCli, isBinaryInstalled } from './external.js';
 import { registerAllCommands } from './commanderAdapter.js';
@@ -24,7 +24,7 @@ export function runCli(BUILTIN_CLIS: string, USER_CLIS: string): void {
   program
     .name('opencli')
     .description('Make any website your CLI. Zero setup. AI-powered.')
-    .version(PKG_VERSION)
+    .version(CLI_VERSION)
     .enablePositionalOptions();
 
   // ── Built-in: list ────────────────────────────────────────────────────────
@@ -234,7 +234,7 @@ export function runCli(BUILTIN_CLIS: string, USER_CLIS: string): void {
     .option('--sessions', 'Show active automation sessions', false)
     .action(async (opts) => {
       const { runBrowserDoctor, renderBrowserDoctorReport } = await import('./doctor.js');
-      const report = await runBrowserDoctor({ live: opts.live, sessions: opts.sessions, cliVersion: PKG_VERSION });
+      const report = await runBrowserDoctor({ live: opts.live, sessions: opts.sessions, cliVersion: CLI_VERSION });
       console.log(renderBrowserDoctorReport(report));
     });
 
