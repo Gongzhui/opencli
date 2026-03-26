@@ -114,6 +114,39 @@ opencli list  # 可以在任何地方使用了！
 npm install -g @jackwener/opencli@latest
 ```
 
+### Fork 维护说明
+
+如果你维护的是自己的 fork，并且希望本机全局 `opencli` 始终指向你的魔改版本，推荐使用：
+
+```bash
+cd opencli
+npm install
+npm run build
+npm link
+```
+
+这样全局 `opencli` 命令会直接链接到当前仓库，而不是安装一个静态副本。
+
+后续如果你继续沿这个模式维护，推荐流程是：
+
+1. 先同步上游
+2. 再改自己的代码
+3. 最后更新 `fork-version.json` 里的 `forkVersion`
+
+示例：
+
+```bash
+git fetch origin --prune
+git rebase origin/main
+
+# 在此基础上继续修改你的 fork
+
+npm run build
+npm link
+```
+
+`package.json` 里的 `version` 保留给上游版本号，`fork-version.json` 用来维护你自己的魔改版本号。这样执行 `opencli --version` 时，可以同时看出当前构建基于哪个上游版本，以及这是不是你的 fork 版本。
+
 ## 内置命令
 
 运行 `opencli list` 查看完整注册表。
