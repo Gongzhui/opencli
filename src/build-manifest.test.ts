@@ -164,6 +164,31 @@ describe('manifest helper rules', () => {
       name: 'legacy',
       deprecated: 'legacy is deprecated',
       replacedBy: 'opencli demo new',
+      type: 'ts',
+    });
+  });
+
+  it('captures timeoutSeconds from TS adapters into the manifest stub', () => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'opencli-manifest-'));
+    tempDirs.push(dir);
+    const file = path.join(dir, 'export-pdf.ts');
+    fs.writeFileSync(file, `
+      import { cli, Strategy } from '../../registry.js';
+      cli({
+        site: 'demo',
+        name: 'export-pdf',
+        description: 'Export PDF',
+        strategy: Strategy.COOKIE,
+        timeoutSeconds: 180,
+        args: [{ name: 'note', positional: true, required: true, help: 'Note URL' }],
+      });
+    `);
+
+    expect(scanTs(file, 'demo')).toMatchObject({
+      site: 'demo',
+      name: 'export-pdf',
+      timeout: 180,
+      type: 'ts',
     });
   });
 });
