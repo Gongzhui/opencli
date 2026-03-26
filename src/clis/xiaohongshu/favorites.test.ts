@@ -54,6 +54,13 @@ describe('xiaohongshu favorites', () => {
         loginWall: false,
         captchaWall: false,
       },
+      {
+        href: 'https://www.xiaohongshu.com/user/profile/self-user-id',
+        favorites: [],
+        emptyState: false,
+        loginWall: false,
+        captchaWall: false,
+      },
       { ok: true },
       {
         href: 'https://www.xiaohongshu.com/user/profile/self-user-id?tab=fav&subTab=note',
